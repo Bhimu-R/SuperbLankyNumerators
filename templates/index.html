@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekend Planner</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>Weekend Get-Together Planner</h1>
+    <nav>
+      <ul>
+        <li><a href="#" onclick="showSection('home')">Home</a></li>
+        <li><a href="#" onclick="showSection('explore')">Explore</a></li>
+        <li><a href="#" onclick="showSection('host')">Host</a></li>
+        <li><a href="#" onclick="showSection('login')">Login</a></li>
+        <li><a href="#" onclick="showSection('past-activities')">Past Activities</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Success Popup -->
+    <div id="success-popup" class="hidden">
+      <p>Activity created successfully!</p>
+    </div>
+
+    <!-- Home Section -->
+    <section id="home">
+      <div class="center-options">
+        <h2>"A Weekend Well Planned is a Weekend Well Spent!"</h2>
+        <ul class="motivational-quotes">
+          <li>“Weekends are for adventures, laughter, and memories.”</li>
+          <li>“A weekend well spent brings a week of content.”</li>
+          <li>“Happiness is planning a weekend with good friends.”</li>
+        </ul>
+        <div class="button-container">
+          <button class="action-button" onclick="showSection('explore')">Explore</button>
+          <button class="action-button" onclick="showSection('host')">Host</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Explore Section -->
+    <section id="explore" class="hidden">
+      <h2>Explore Activities</h2>
+      <div id="activity-list" class="activity-grid"></div>
+    </section>
+
+    <!-- Host Section -->
+    <section id="host" class="hidden">
+      <h2>Host an Activity</h2>
+      <form id="host-form" action="/add-activity" method="POST" enctype="multipart/form-data">
+        <label for="type">Event Type:</label>
+        <select id="type" name="type">
+          <option value="Get-together">Get-together</option>
+          <option value="Movie">Movie</option>
+          <option value="Games">Games</option>
+          <option value="Ride">Bike Ride</option>
+          <option value="Trekking">Trekking</option>
+        </select>
+
+        <label for="host-name">Host Name:</label>
+        <input type="text" id="host-name" name="host" placeholder="Your Name" required>
+
+        <label for="details">Details:</label>
+        <textarea id="details" name="details" placeholder="Describe your activity" required></textarea>
+
+        <label for="time">Time:</label>
+        <input type="datetime-local" id="time" name="time" required>
+
+        <label for="people">Number of People:</label>
+        <input type="number" id="people" name="people" placeholder="Max Participants" required>
+
+        <label for="image">Attach Image:</label>
+        <input type="file" id="image" name="image" accept="image/*">
+
+        <button type="submit">Create Activity</button>
+      </form>
+    </section>
+
+    <!-- Login Section -->
+    <section id="login" class="hidden">
+      <h2>User Login</h2>
+      <form>
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="Enter your username">
+        <label for="password">Password:</label>
+        <input type="password" id="password" placeholder="Enter your password">
+        <button type="button" onclick="login()">Login</button>
+      </form>
+    </section>
+
+    <!-- Past Activities Section -->
+    <section id="past-activities" class="hidden">
+      <h2>Past Activities</h2>
+      <div id="past-list">
+        <p>No past activities recorded yet.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2024 Weekend Planner. All Rights Reserved.</p>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      loadActivities();
+      setDefaultDate();
+      const sections = document.querySelectorAll("section");
+
+      window.showSection = (id) => {
+        sections.forEach(section => section.classList.toggle("hidden", section.id !== id));
+      };
+
+      // Handle success popup
+      const popup = document.getElementById("success-popup");
+      if (popup) {
+        setTimeout(() => popup.classList.add("hidden"), 3000);
+      }
+    });
+
+    function loadActivities() {
+      fetch("/activities")
+        .then(res => res.json())
+        .then(data => {
+          const activityList = document.getElementById("activity-list");
+          activityList.innerHTML = "";
+          data.forEach(activity => {
+            const div = document.createElement("div");
+            div.classList.add("activity");
+            div.innerHTML = `
+              <img src="${activity.image || '/static/default.jpg'}" alt="Activity Image" class="activity-image">
+              <h3>${activity.type}</h3>
+              <p><strong>Host:</strong> ${activity.host}</p>
+              <p><strong>Details:</strong> ${activity.details}</p>
+              <p><strong>Time:</strong> ${activity.time}</p>
+              <p><strong>People:</strong> ${activity.people}</p>
+            `;
+            activityList.appendChild(div);
+          });
+        });
+    }
+
+    function setDefaultDate() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dateInput = document.getElementById("time");
+      dateInput.value = tomorrow.toISOString().slice(0, 16);
+    }
+
+    function login() {
+      alert("Login functionality is not implemented yet!");
+    }
+  </script>
+</body>
+</html>
