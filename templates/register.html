@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>Register</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <main>
     <section>
-      <h2>User Login</h2>
-      <form method="POST" action="/login">
+      <h2>Create an Account</h2>
+      <form method="POST" action="/register">
         <label for="username">Username:</label>
-        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+        <input type="text" id="username" name="username" required>
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" placeholder="Enter your password" required>
-        <button type="submit">Login</button>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Register</button>
       </form>
     </section>
   </main>

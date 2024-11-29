@@ -20,25 +20,24 @@
   </header>
 
   <main>
-    <!-- Success Popup -->
-    <div id="success-popup" class="hidden">
-      <p>Activity created successfully!</p>
-    </div>
-
     <!-- Home Section -->
     <section id="home">
-      <div class="center-options">
-        <h2>"A Weekend Well Planned is a Weekend Well Spent!"</h2>
-        <ul class="motivational-quotes">
-          <li>“Weekends are for adventures, laughter, and memories.”</li>
-          <li>“A weekend well spent brings a week of content.”</li>
-          <li>“Happiness is planning a weekend with good friends.”</li>
-        </ul>
-        <div class="button-container">
-          <button class="action-button" onclick="showSection('explore')">Explore</button>
-          <button class="action-button" onclick="showSection('host')">Host</button>
-        </div>
-      </div>
+      {% if username %}
+      <h2>Welcome, {{ username }}!</h2>
+      <p>Explore, host, or manage your activities below.</p>
+      <button onclick="window.location.href='/logout'">Logout</button>
+      {% else %}
+      <h2>Welcome to Weekend Planner</h2>
+      <p>Please log in or register to continue:</p>
+      <form method="POST" action="/login">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" placeholder="Username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+      <p>Don't have an account? <a href="/register">Register here</a>.</p>
+      {% endif %}
     </section>
 
     <!-- Explore Section -->
@@ -49,6 +48,7 @@
 
     <!-- Host Section -->
     <section id="host" class="hidden">
+      {% if username %}
       <h2>Host an Activity</h2>
       <form id="host-form" action="/add-activity" method="POST" enctype="multipart/form-data">
         <label for="type">Event Type:</label>
@@ -77,14 +77,21 @@
 
         <button type="submit">Create Activity</button>
       </form>
+      {% else %}
+      <p>Please log in to host an activity.</p>
+      {% endif %}
     </section>
 
     <!-- My Activities Section -->
     <section id="my-activities" class="hidden">
+      {% if username %}
       <h2>My Activities</h2>
-      <div id="my-activities-list">
-        <p>No activities joined yet.</p>
+      <div id="my-activity-list">
+        <p>Loading your activities...</p>
       </div>
+      {% else %}
+      <p>Please log in to view your activities.</p>
+      {% endif %}
     </section>
   </main>
 
@@ -96,39 +103,38 @@
     document.addEventListener("DOMContentLoaded", () => {
       loadActivities();
       loadMyActivities();
-
+      setDefaultDate();
       const sections = document.querySelectorAll("section");
+
       window.showSection = (id) => {
-        sections.forEach((section) =>
-          section.classList.toggle("hidden", section.id !== id)
-        );
+        sections.forEach(section => section.classList.toggle("hidden", section.id !== id));
       };
 
-      // Handle success popup
-      const popup = document.getElementById("success-popup");
-      if (popup) {
-        setTimeout(() => popup.classList.add("hidden"), 3000);
+      if ({{ 'true' if username else 'false' }}) {
+        showSection('home');
+      } else {
+        showSection('home');
       }
     });
 
     function loadActivities() {
       fetch("/activities")
-        .then((res) => res.json())
-        .then((data) => {
+        .then(res => res.json())
+        .then(data => {
           const activityList = document.getElementById("activity-list");
           activityList.innerHTML = "";
-          data.forEach((activity) => {
+          data.forEach(activity => {
             const div = document.createElement("div");
             div.classList.add("activity");
             div.innerHTML = `
-              <img src="${activity.image || "/static/default.jpg"}" alt="Activity Image" class="activity-image">
+              <img src="${activity.image || '/static/default.jpg'}" alt="Activity Image" class="activity-image">
               <h3>${activity.type}</h3>
               <p><strong>Host:</strong> ${activity.host}</p>
               <p><strong>Details:</strong> ${activity.details}</p>
               <p><strong>Time:</strong> ${activity.time}</p>
               <p><strong>People:</strong> ${activity.people}</p>
-              <form action="/join-activity/${activity.id}" method="POST">
-                <button type="submit" class="join-button">Join Activity</button>
+              <form method="POST" action="/join-activity/${activity.id}">
+                <button type="submit">Join Activity</button>
               </form>
             `;
             activityList.appendChild(div);
@@ -138,24 +144,37 @@
 
     function loadMyActivities() {
       fetch("/my-activities")
-        .then((res) => res.json())
-        .then((data) => {
-          const myActivityList = document.getElementById("my-activities-list");
+        .then(res => res.json())
+        .then(data => {
+          const myActivityList = document.getElementById("my-activity-list");
           myActivityList.innerHTML = "";
-          data.forEach((activity) => {
-            const div = document.createElement("div");
-            div.classList.add("activity");
-            div.innerHTML = `
-              <img src="${activity.image || "/static/default.jpg"}" alt="Activity Image" class="activity-image">
-              <h3>${activity.type}</h3>
-              <p><strong>Host:</strong> ${activity.host}</p>
-              <p><strong>Details:</strong> ${activity.details}</p>
-              <p><strong>Time:</strong> ${activity.time}</p>
-              <p><strong>People:</strong> ${activity.people}</p>
-            `;
-            myActivityList.appendChild(div);
-          });
+          if (data.length === 0) {
+            myActivityList.innerHTML = "<p>You haven't joined or hosted any activities yet.</p>";
+          } else {
+            data.forEach(activity => {
+              const div = document.createElement("div");
+              div.classList.add("activity");
+              div.innerHTML = `
+                <img src="${activity.image || '/static/default.jpg'}" alt="Activity Image" class="activity-image">
+                <h3>${activity.type}</h3>
+                <p><strong>Host:</strong> ${activity.host}</p>
+                <p><strong>Details:</strong> ${activity.details}</p>
+                <p><strong>Time:</strong> ${activity.time}</p>
+                <p><strong>People:</strong> ${activity.people}</p>
+              `;
+              myActivityList.appendChild(div);
+            });
+          }
         });
+    }
+
+    function setDefaultDate() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dateInput = document.getElementById("time");
+      if (dateInput) {
+        dateInput.value = tomorrow.toISOString().slice(0, 16);
+      }
     }
   </script>
 </body>
