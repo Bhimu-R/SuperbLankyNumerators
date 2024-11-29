@@ -14,8 +14,7 @@
         <li><a href="#" onclick="showSection('home')">Home</a></li>
         <li><a href="#" onclick="showSection('explore')">Explore</a></li>
         <li><a href="#" onclick="showSection('host')">Host</a></li>
-        <li><a href="#" onclick="showSection('login')">Login</a></li>
-        <li><a href="#" onclick="showSection('past-activities')">Past Activities</a></li>
+        <li><a href="#" onclick="showSection('my-activities')">My Activities</a></li>
       </ul>
     </nav>
   </header>
@@ -80,23 +79,11 @@
       </form>
     </section>
 
-    <!-- Login Section -->
-    <section id="login" class="hidden">
-      <h2>User Login</h2>
-      <form>
-        <label for="username">Username:</label>
-        <input type="text" id="username" placeholder="Enter your username">
-        <label for="password">Password:</label>
-        <input type="password" id="password" placeholder="Enter your password">
-        <button type="button" onclick="login()">Login</button>
-      </form>
-    </section>
-
-    <!-- Past Activities Section -->
-    <section id="past-activities" class="hidden">
-      <h2>Past Activities</h2>
-      <div id="past-list">
-        <p>No past activities recorded yet.</p>
+    <!-- My Activities Section -->
+    <section id="my-activities" class="hidden">
+      <h2>My Activities</h2>
+      <div id="my-activities-list">
+        <p>No activities joined yet.</p>
       </div>
     </section>
   </main>
@@ -108,11 +95,13 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       loadActivities();
-      setDefaultDate();
-      const sections = document.querySelectorAll("section");
+      loadMyActivities();
 
+      const sections = document.querySelectorAll("section");
       window.showSection = (id) => {
-        sections.forEach(section => section.classList.toggle("hidden", section.id !== id));
+        sections.forEach((section) =>
+          section.classList.toggle("hidden", section.id !== id)
+        );
       };
 
       // Handle success popup
@@ -124,35 +113,49 @@
 
     function loadActivities() {
       fetch("/activities")
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           const activityList = document.getElementById("activity-list");
           activityList.innerHTML = "";
-          data.forEach(activity => {
+          data.forEach((activity) => {
             const div = document.createElement("div");
             div.classList.add("activity");
             div.innerHTML = `
-              <img src="${activity.image || '/static/default.jpg'}" alt="Activity Image" class="activity-image">
+              <img src="${activity.image || "/static/default.jpg"}" alt="Activity Image" class="activity-image">
               <h3>${activity.type}</h3>
               <p><strong>Host:</strong> ${activity.host}</p>
               <p><strong>Details:</strong> ${activity.details}</p>
               <p><strong>Time:</strong> ${activity.time}</p>
               <p><strong>People:</strong> ${activity.people}</p>
+              <form action="/join-activity/${activity.id}" method="POST">
+                <button type="submit" class="join-button">Join Activity</button>
+              </form>
             `;
             activityList.appendChild(div);
           });
         });
     }
 
-    function setDefaultDate() {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const dateInput = document.getElementById("time");
-      dateInput.value = tomorrow.toISOString().slice(0, 16);
-    }
-
-    function login() {
-      alert("Login functionality is not implemented yet!");
+    function loadMyActivities() {
+      fetch("/my-activities")
+        .then((res) => res.json())
+        .then((data) => {
+          const myActivityList = document.getElementById("my-activities-list");
+          myActivityList.innerHTML = "";
+          data.forEach((activity) => {
+            const div = document.createElement("div");
+            div.classList.add("activity");
+            div.innerHTML = `
+              <img src="${activity.image || "/static/default.jpg"}" alt="Activity Image" class="activity-image">
+              <h3>${activity.type}</h3>
+              <p><strong>Host:</strong> ${activity.host}</p>
+              <p><strong>Details:</strong> ${activity.details}</p>
+              <p><strong>Time:</strong> ${activity.time}</p>
+              <p><strong>People:</strong> ${activity.people}</p>
+            `;
+            myActivityList.appendChild(div);
+          });
+        });
     }
   </script>
 </body>
